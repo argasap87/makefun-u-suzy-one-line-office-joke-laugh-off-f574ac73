@@ -23,17 +23,22 @@ const JOKE =
   "My review said I 'thrive under pressure' — HR for 'we noticed you only work once the deadline starts screaming.'";
 
 // Gate: the brief requires a single line of 1-200 characters, nothing else.
-const chars = [...JOKE].length;
-if (chars < 1 || chars > 200) {
-  throw new Error(`entry must be 1-200 characters, got ${chars}`);
+function verifyEntry(line: string): void {
+  const n = [...line].length;
+  if (n < 1 || n > 200) {
+    throw new Error(`entry must be 1-200 characters, got ${n}`);
+  }
+  if (line.includes("\n") || line.includes("\r")) {
+    throw new Error("entry must be a single line");
+  }
+  if (line.trim().length === 0 || line !== line.trim() || line.includes("  ")) {
+    throw new Error("entry must be clean non-whitespace text");
+  }
 }
-if (JOKE.includes("\n") || JOKE.includes("\r")) {
-  throw new Error("entry must be a single line");
-}
-if (JOKE.trim().length === 0 || JOKE !== JOKE.trim() || JOKE.includes("  ")) {
-  throw new Error("entry must be clean non-whitespace text");
-}
+verifyEntry(JOKE);
 
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 mkdirSync(outDir, { recursive: true });
+// Final gate: re-verify the exact line right before writing so a bad line can never reach entry.txt.
+verifyEntry(JOKE);
 writeFileSync(join(outDir, "entry.txt"), JOKE, "utf8");
